@@ -1,7 +1,7 @@
 import { CompositeDisposable, Emitter, Disposable } from 'atom'
 
-// https://github.com/atom/atom-select-list/pull/31
-let SelectListView: any
+let SelectListViewImport: (typeof import("atom-select-list"))["default"]
+
 type ToggleAction = 'enable' | 'disable'
 
 export default class ToggleView {
@@ -40,19 +40,21 @@ export default class ToggleView {
     }
     atom.config.set('linter.disabledProviders', this.disabledProviders)
   }
-  show() {
-    if (!SelectListView) {
-      SelectListView = require('atom-select-list')
+  async show() {
+    if (SelectListViewImport === undefined) {
+      SelectListViewImport = (await import('atom-select-list')).default
     }
-    const selectListView = new SelectListView({
+    const selectListView = new SelectListViewImport({
       items: this.getItems(),
       emptyMessage: 'No matches found',
-      elementForItem: (item: any) => {
+      // @ts-ignore
+      elementForItem: (item: string) => {
         const li = document.createElement('li')
         li.textContent = item
         return li
       },
-      didConfirmSelection: (item: any) => {
+      // @ts-ignore
+      didConfirmSelection: (item: string) => {
         try {
           this.process(item)
           this.dispose()
